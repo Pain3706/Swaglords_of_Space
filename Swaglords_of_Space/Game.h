@@ -3,6 +3,7 @@
 #include<map>
 #include"Player.h"
 #include"Bullet.h"
+#include"Enemy.h"
 
 class Game
 {
@@ -25,7 +26,18 @@ private:
 	//Player
 	Player* player;
 
+	//Enemy
+	float enemiesSpawnTimerMax;
+	float enemiesSpawnTimer;
+	float speed;
+	int maxEnemies;
+	int hp;
+
+	std::vector<sf::Sprite> enemies;
+	sf::Texture text1, text2, text3;
+
 	//Private Functions
+	void initVariables();
 	void initWindow();
 	void initTextures();
 	void initPlayer();
@@ -38,12 +50,15 @@ public:
 	//Functions
 	void run();
 
+	void spawnEnemy();
 	void updatePollEventS();
 	void updateInput();
 	void updateBullets();
+	void updateEnemies();
 	void update();
 	void updateSound();
 	void renderWorld();
+	void renderEnemies();
 	void render();
 };
 

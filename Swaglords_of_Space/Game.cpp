@@ -1,9 +1,18 @@
 #include "Game.h"
 
 
+void Game::initVariables()
+{
+	this->enemiesSpawnTimerMax = 10.f;
+	this->enemiesSpawnTimer = this->enemiesSpawnTimerMax;
+	this->maxEnemies = 3;
+	this->speed = 100.f;
+	this->hp = 5;
+}
+
 void Game::initWindow()
 {
-	this->window = new sf::RenderWindow(sf::VideoMode(1200, 1000), "Swaglords of Space", sf::Style::Resize | sf::Style::Titlebar);
+	this->window = new sf::RenderWindow(sf::VideoMode(1200, 1000), "Swaglords of Space", sf::Style::Resize | sf::Style::Titlebar | sf::Style::Close);
 	this->window->setFramerateLimit(144);
 	this->window->setVerticalSyncEnabled(false);
 }
@@ -43,6 +52,7 @@ void Game::initWorld()
 
 Game::Game()
 {
+	this->initVariables();
 	this->initWindow();
 	this->initTextures();
 	this->initSound();
@@ -71,6 +81,38 @@ void Game::run()
 		this->update();
 		this->render();
 	}
+}
+
+void Game::spawnEnemy()
+{
+	int type = rand() % 3;
+	if (!text1.loadFromFile("Textures\\ship6.png")) {
+		std::cout << "Error" << "\n";
+	}
+	if (!text2.loadFromFile("Textures\\ship5.png")) {
+		std::cout << "Error" << "\n";
+	}
+	if (!text3.loadFromFile("Textures\\ship4.png")) {
+		std::cout << "Error" << "\n";
+	}
+
+	sf::Sprite sprite;
+	if (type == 0) {
+		sprite.setTexture(text1);
+		sprite.setScale(0.3f, 0.3f);
+	}
+	if (type == 1) {
+		sprite.setTexture(text2);
+		sprite.setScale(0.2f, 0.2f);
+	}
+	if (type == 2) {
+		sprite.setTexture(text3);
+		sprite.setScale(0.5f, 0.5f);
+	}
+
+	float randomX = static_cast<float>(rand() % 1200);
+	sprite.setPosition(randomX, -100.f);
+	this->enemies.push_back(sprite);
 }
 
 void Game::updatePollEventS()
@@ -122,11 +164,45 @@ void Game::updateBullets()
 
 }
 
+void Game::updateEnemies()
+{
+	//Spawn enemies
+	if (this->enemies.size() < maxEnemies) {
+		if (this->enemiesSpawnTimer >= this->enemiesSpawnTimerMax) {
+			this->spawnEnemy();
+			this->enemiesSpawnTimer = 0.f;
+		}
+		else this->enemiesSpawnTimer += 1.f;
+	}
+
+	//Move downward
+	for (int i = 0; i < enemies.size(); i++) {
+		this->enemies[i].move(0.f, 4.f);
+		bool enemyRemoved = false;
+		for (int k = 0; k < this->bullets.size(); k++) {
+			if (this->bullets[k]->getBounds().intersects(this->enemies[i].getGlobalBounds())) {
+				this->enemies.erase(this->enemies.begin() + i);
+				this->bullets.erase(this->bullets.begin() + k);
+				enemyRemoved = true;
+				break;
+			}
+		}
+
+		if (!enemyRemoved && this->enemies[i].getPosition().y > this->window->getSize().y) {
+			this->enemies.erase(this->enemies.begin() + i);
+			this->hp--;
+			std::cout << "HP: " << this->hp << "\n";
+			if (hp <= 0) this->window->close();
+		}
+	}
+}
+
 void Game::update()
 {
 	this->updatePollEventS();
 	this->updateInput();
 	this->player->update();
+	this->updateEnemies();
 	this->updateBullets();
 }
 
@@ -141,6 +217,13 @@ void Game::renderWorld()
 	this->window->draw(this->worldBackground);
 }
 
+void Game::renderEnemies()
+{
+	for (auto& e : enemies) {
+		this->window->draw(e);
+	}
+}
+
 void Game::render()
 {
 	this->window->clear();
@@ -150,7 +233,7 @@ void Game::render()
 
 	//Draw all the stuffs
 	this->player->render(*this->window);
-
+	this->renderEnemies();
 	for (auto* bullet : this->bullets) {
 		bullet->render(this->window);
 	}
