@@ -33,6 +33,7 @@ public:
 	//Accessor
 	const sf::Vector2f& getPos() const;
 	const bool canAttack();
+	const sf::FloatRect getBounds() const;
 
 	void updateAttack();
 	void update();

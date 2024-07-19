@@ -9,7 +9,10 @@ class Game
 {
 private:
 	sf::RenderWindow* window;
-
+	
+	//Font
+	sf::Font font;
+	sf::Text gameOverText;
 	//Resources
 	std::map<std::string, sf::Texture*> textures;
 	std::vector<Bullet*> bullets;	
@@ -32,6 +35,7 @@ private:
 	float speed;
 	int maxEnemies;
 	int hp;
+	int points;
 
 	std::vector<sf::Sprite> enemies;
 	sf::Texture text1, text2, text3;
@@ -43,6 +47,7 @@ private:
 	void initPlayer();
 	void initSound();
 	void initWorld();
+	void initFont();
 public:
 	Game();
 	virtual ~Game();
@@ -51,7 +56,7 @@ public:
 	void run();
 
 	void spawnEnemy();
-	void updatePollEventS();
+	void updatePollEvents();
 	void updateInput();
 	void updateBullets();
 	void updateEnemies();

@@ -2,7 +2,7 @@
 
 void Player::initVariables()
 {
-	this->movementSpeed = 5.f;
+	this->movementSpeed = 4.f;
 	this->attackCooldownMax = 10.f;
 	this->attackCooldown = this->attackCooldownMax;
 }
@@ -54,6 +54,11 @@ const bool Player::canAttack()
 		return true;
 	}
 	return false;
+}
+
+const sf::FloatRect Player::getBounds() const
+{
+	return sprite.getGlobalBounds();
 }
 
 void Player::updateAttack()

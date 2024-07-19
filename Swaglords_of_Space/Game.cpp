@@ -8,11 +8,12 @@ void Game::initVariables()
 	this->maxEnemies = 3;
 	this->speed = 100.f;
 	this->hp = 5;
+	this->points = 0;
 }
 
 void Game::initWindow()
 {
-	this->window = new sf::RenderWindow(sf::VideoMode(1200, 1000), "Swaglords of Space", sf::Style::Resize | sf::Style::Titlebar | sf::Style::Close);
+	this->window = new sf::RenderWindow(sf::VideoMode(1500, 1000), "Swaglords of Space", sf::Style::Resize | sf::Style::Titlebar | sf::Style::Close);
 	this->window->setFramerateLimit(144);
 	this->window->setVerticalSyncEnabled(false);
 }
@@ -50,6 +51,20 @@ void Game::initWorld()
 	this->worldBackground.setTexture(this->worldBackgroundText);
 }
 
+void Game::initFont()
+{
+	if (!this->font.loadFromFile("Font\\font.ttf")) {
+		std::cout << "Error loading font\n";
+	}
+
+	// Create Game Over text
+	this->gameOverText.setFont(font);
+	this->gameOverText.setString("Game Over!");
+	this->gameOverText.setCharacterSize(100);
+	this->gameOverText.setFillColor(sf::Color::Red);
+	this->gameOverText.setPosition(500.f, 400.f);
+}
+
 Game::Game()
 {
 	this->initVariables();
@@ -57,6 +72,7 @@ Game::Game()
 	this->initTextures();
 	this->initSound();
 	this->initWorld();
+	this->initFont();
 	this->initPlayer();
 }
 
@@ -78,8 +94,15 @@ Game::~Game()
 void Game::run()
 {
 	while (this->window->isOpen()) {
-		this->update();
-		this->render();
+		this->updatePollEvents();
+		if(this->hp > 0)
+		{
+			this->update();
+			this->render();
+		}
+		else {
+			this->window->draw(this->gameOverText);
+		}
 	}
 }
 
@@ -110,12 +133,12 @@ void Game::spawnEnemy()
 		sprite.setScale(0.5f, 0.5f);
 	}
 
-	float randomX = static_cast<float>(rand() % 1200);
+	float randomX = static_cast<float>(rand() % 1300);
 	sprite.setPosition(randomX, -100.f);
 	this->enemies.push_back(sprite);
 }
 
-void Game::updatePollEventS()
+void Game::updatePollEvents()
 {
 	sf::Event e;
 	while (this->window->pollEvent(e)) {
@@ -184,22 +207,30 @@ void Game::updateEnemies()
 				this->enemies.erase(this->enemies.begin() + i);
 				this->bullets.erase(this->bullets.begin() + k);
 				enemyRemoved = true;
+				this->points++;
+				std::cout << "Points: " << points << ' ' << "\n";
 				break;
 			}
+		}
+
+		if (!enemyRemoved && this->player->getBounds().intersects(this->enemies[i].getGlobalBounds())) {
+			this->enemies.erase(this->enemies.begin() + i);
+			this->hp--;
+			std::cout << "HP: " << this->hp << "\n";
+			enemyRemoved = true;
 		}
 
 		if (!enemyRemoved && this->enemies[i].getPosition().y > this->window->getSize().y) {
 			this->enemies.erase(this->enemies.begin() + i);
 			this->hp--;
 			std::cout << "HP: " << this->hp << "\n";
-			if (hp <= 0) this->window->close();
 		}
 	}
 }
 
 void Game::update()
 {
-	this->updatePollEventS();
+	this->updatePollEvents();
 	this->updateInput();
 	this->player->update();
 	this->updateEnemies();
@@ -237,5 +268,7 @@ void Game::render()
 	for (auto* bullet : this->bullets) {
 		bullet->render(this->window);
 	}
+	if (this->hp <= 0)
+		this->window->draw(this->gameOverText);
 	this->window->display();
 }
